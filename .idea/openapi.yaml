@@ -1,0 +1,132 @@
+openapi: 3.0.3
+info:
+  title: STD24056
+  description: "This is a specification of STD24056"
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Serveur de développement
+
+paths:
+  /booking:
+    get:
+      summary: Récupère toutes les réservations
+      operationId: getBookings
+      responses:
+        '200':
+          description: Liste des réservations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Booking'
+    post:
+      summary: Crée une nouvelle réservation
+      operationId: createBooking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+      responses:
+        '200':
+          description: Réservation créée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Booking'
+        '400':
+          description: Numéro de chambre invalide (hors 1-9)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Chambre déjà réservée à cette date
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /rooms/{roomNumber}/bookings:
+    get:
+      summary: Récupère les réservations d'une chambre
+      operationId: getRoomBookings
+      parameters:
+        - name: roomNumber
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 9
+      responses:
+        '200':
+          description: Réservations de la chambre
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Booking'
+        '400':
+          description: Numéro de chambre invalide
+
+components:
+  schemas:
+    Customer:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Nom du client
+        phone:
+          type: string
+          description: Numéro de téléphone
+        email:
+          type: string
+          format: email
+          description: Adresse email
+      required:
+        - name
+        - phone
+        - email
+
+    Room:
+      type: object
+      properties:
+        number:
+          type: integer
+          minimum: 1
+          maximum: 9
+          description: Numéro de chambre
+        description:
+          type: string
+          description: Description de la chambre
+      required:
+        - number
+        - description
+
+    Booking:
+      allOf:
+        - $ref: '#/components/schemas/Customer'
+        - $ref: '#/components/schemas/Room'
+        - type: object
+          properties:
+            booking_date:
+              type: string
+              format: date
+              description: Date de la réservation
+          required:
+            - booking_date
+
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+          description: Message d'erreur
